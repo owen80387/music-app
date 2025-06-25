@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+torch
+torchcrepe
+pillow
+python-multipart
+librosa
+numpy
+pydantic
+python-jose[cryptography]
+requests
