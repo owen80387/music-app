@@ -11,10 +11,18 @@ router = APIRouter()
 class AnalyzeRequest(BaseModel):
     fileUrl: str
 
+class BeatRecommendation(BaseModel):
+    id: str
+    similarity: float
+    bpm: int
+    key: str
+    user: str
+    price: int
+
 class AnalyzeResponse(BaseModel):
     bpm: int
     key: str
-    recommend: list[str]
+    recommend: list[BeatRecommendation]
 
 @router.get("/ping")
 async def ping():

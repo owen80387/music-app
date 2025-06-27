@@ -55,13 +55,13 @@ function HistoryTable() {
               Type
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              BPM
+              Beat / Seller
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Key
+              Details
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Price
+              Price / Match
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Audio
@@ -83,14 +83,21 @@ function HistoryTable() {
                   {transaction.type}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                {transaction.bpm}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                {transaction.key}
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                <div className="font-medium">{transaction.beatId || 'Analysis'}</div>
+                <div className="text-xs text-gray-500">{transaction.seller || 'System'}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                {transaction.price} coins
+                <div>{transaction.bpm} BPM • {transaction.key}</div>
+                {transaction.similarity && (
+                  <div className="text-xs text-gray-500">{transaction.similarity}% similarity</div>
+                )}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                <div>{transaction.price} coins</div>
+                {transaction.sellerEarnings && (
+                  <div className="text-xs text-gray-500">Seller earned: {transaction.sellerEarnings}</div>
+                )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                 {transaction.audioUrl ? (

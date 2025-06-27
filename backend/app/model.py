@@ -85,29 +85,53 @@ def detect_key(audio: np.ndarray, sr: int) -> str:
         # Fallback to random key
         return f"{random.choice(NOTE_NAMES)} {random.choice(MAJOR_MINOR)}"
 
-def generate_recommendations(bpm: int, key: str) -> List[str]:
-    """Generate beat recommendations based on BPM and key"""
-    # Simple recommendation logic based on BPM ranges
+def calculate_similarity(user_bpm: int, user_key: str, beat_bpm: int, beat_key: str) -> float:
+    """Calculate similarity percentage between user's beat and marketplace beat"""
+    # BPM similarity (closer BPM = higher similarity)
+    bpm_diff = abs(user_bpm - beat_bpm)
+    bpm_similarity = max(0, 100 - (bpm_diff * 2))  # 2% penalty per BPM difference
+    
+    # Key similarity
+    user_note = user_key.split()[0]
+    beat_note = beat_key.split()[0]
+    user_mode = user_key.split()[1] if len(user_key.split()) > 1 else "Major"
+    beat_mode = beat_key.split()[1] if len(beat_key.split()) > 1 else "Major"
+    
+    # Same key = 100%, related keys = 80%, different = 50%
+    key_similarity = 100 if user_note == beat_note else (80 if user_mode == beat_mode else 50)
+    
+    # Weighted average (BPM 60%, Key 40%)
+    total_similarity = (bpm_similarity * 0.6) + (key_similarity * 0.4)
+    
+    return round(min(100, max(0, total_similarity)), 1)
+
+def generate_recommendations(bpm: int, key: str) -> List[Dict]:
+    """Generate beat recommendations with similarity scores"""
+    # Mock marketplace beats database
+    marketplace_beats = [
+        {"id": "beat001", "bpm": bpm + random.randint(-10, 10), "key": key, "user": "ProducerA", "price": 15},
+        {"id": "beat002", "bpm": bpm + random.randint(-15, 15), "key": random.choice(NOTE_NAMES) + " " + random.choice(MAJOR_MINOR), "user": "BeatMaker99", "price": 12},
+        {"id": "beat003", "bpm": bpm + random.randint(-20, 20), "key": random.choice(NOTE_NAMES) + " " + random.choice(MAJOR_MINOR), "user": "SoundLab", "price": 18},
+        {"id": "beat004", "bpm": bpm + random.randint(-8, 8), "key": key, "user": "MixMaster", "price": 20},
+        {"id": "beat005", "bpm": bpm + random.randint(-25, 25), "key": random.choice(NOTE_NAMES) + " " + random.choice(MAJOR_MINOR), "user": "VibeCreator", "price": 10},
+    ]
+    
+    # Calculate similarity for each beat
     recommendations = []
+    for beat in marketplace_beats:
+        similarity = calculate_similarity(bpm, key, beat["bpm"], beat["key"])
+        recommendations.append({
+            "id": beat["id"],
+            "similarity": similarity,
+            "bpm": beat["bpm"],
+            "key": beat["key"],
+            "user": beat["user"],
+            "price": beat["price"]
+        })
     
-    if 60 <= bpm <= 90:
-        # Slow tempo beats
-        recommendations = ["chill001", "lofi002", "ambient003"]
-    elif 90 <= bpm <= 120:
-        # Medium tempo beats
-        recommendations = ["hiphop001", "rnb002", "jazz003"]
-    elif 120 <= bpm <= 140:
-        # Upbeat tempo
-        recommendations = ["pop001", "dance002", "house003"]
-    else:
-        # Fast tempo
-        recommendations = ["edm001", "drum002", "trap003"]
-    
-    # Add key-based variations
-    key_note = key.split()[0]
-    recommendations = [f"{rec}_{key_note.lower()}" for rec in recommendations]
-    
-    return recommendations
+    # Sort by similarity (highest first) and return top 3
+    recommendations.sort(key=lambda x: x["similarity"], reverse=True)
+    return recommendations[:3]
 
 async def analyze_audio(file_path: str) -> Dict:
     """

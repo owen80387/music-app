@@ -5,9 +5,9 @@
 - Upload audio files (MP3, WAV, FLAC)
 - Analyzes BPM and musical key using AI
 - Shows audio waveform
-- Recommends similar beats
-- Virtual coin system for purchases
-- Transaction history
+- Finds similar beats from other users using AI similarity matching
+- Buy beats from other users with virtual coins
+- Transaction history and earnings tracking
 
 ## Setup
 
@@ -46,9 +46,10 @@ App runs at:
 2. Sign in with Google
 3. Upload an audio file by dragging and dropping
 4. Click "Analyze Beat" 
-5. View BPM, key, and recommendations
-6. Buy analysis with coins (starts with 100 coins)
-7. Check History tab for past purchases
+5. View BPM, key, and similar beats from other users
+6. See AI similarity percentages for each recommended beat
+7. Buy beats from other users with coins (starts with 100 coins)
+8. Check History tab for purchases and earnings
 
 ## File requirements
 
