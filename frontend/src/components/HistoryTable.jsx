@@ -15,12 +15,10 @@ function HistoryTable() {
     
     if (playingId === id) {
       setPlayingId(null)
-      // In a real app, you'd pause the audio here
+      // TODO: Pause the audio here
     } else {
       setPlayingId(id)
-      // In a real app, you'd play the audio here
-      // For demo purposes, we'll just toggle the state
-      setTimeout(() => setPlayingId(null), 3000) // Auto-stop after 3s
+      // TODO: Play the audio here
     }
   }
 

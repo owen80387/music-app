@@ -1,54 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react'
-import WaveSurfer from 'wavesurfer.js'
+import React, { useState } from 'react'
 import Upload from '../components/Upload.jsx'
+import SimpleAudioPlayer from '../components/SimpleAudioPlayer.jsx'
 import ResultCard from '../components/ResultCard.jsx'
 import TestApi from '../components/TestApi.jsx'
 import { useUpload } from '../hooks/useUpload.js'
-import { Play, Pause, RotateCcw } from 'lucide-react'
+import { RotateCcw } from 'lucide-react'
 
 function Dashboard() {
   const [selectedFile, setSelectedFile] = useState(null)
   const [fileUrl, setFileUrl] = useState(null) 
   const [analysisResult, setAnalysisResult] = useState(null)
   const [analyzing, setAnalyzing] = useState(false)
-  const [playing, setPlaying] = useState(false)
+
   const [purchaseComplete, setPurchaseComplete] = useState(false)
   
-  const { uploadFile, uploading, uploadError } = useUpload()
-  const waveformRef = useRef(null)
-  const wavesurferRef = useRef(null)
-
-  // Initialize WaveSurfer when fileUrl changes
-  useEffect(() => {
-    if (fileUrl && waveformRef.current) {
-      if (wavesurferRef.current) {
-        wavesurferRef.current.destroy()
-      }
-      
-      wavesurferRef.current = WaveSurfer.create({
-        container: waveformRef.current,
-        waveColor: '#3b82f6',
-        progressColor: '#1d4ed8',
-        cursorColor: '#ef4444',
-        barWidth: 2,
-        barRadius: 3,
-        responsive: true,
-        height: 80,
-        normalize: true
-      })
-
-      wavesurferRef.current.load(fileUrl)
-      
-      wavesurferRef.current.on('play', () => setPlaying(true))
-      wavesurferRef.current.on('pause', () => setPlaying(false))
-    }
-
-    return () => {
-      if (wavesurferRef.current) {
-        wavesurferRef.current.destroy()
-      }
-    }
-  }, [fileUrl])
+  const { uploadFile, uploading, uploadProgress, uploadError } = useUpload()
 
   const handleFileSelect = async (file) => {
     setSelectedFile(file)
@@ -57,8 +23,13 @@ function Dashboard() {
     
     if (file) {
       const url = await uploadFile(file)
-      if (url) {
+      if (url && url.startsWith('http')) {
+        // Use original Firebase URL directly - let the MediaPlayer handle CORS fallback
+        console.log('Using direct Firebase URL:', url)
         setFileUrl(url)
+      } else {
+        console.error('Invalid URL received:', url)
+        setFileUrl(null)
       }
     } else {
       setFileUrl(null)
@@ -85,33 +56,14 @@ function Dashboard() {
           audioUrl: fileUrl
         })
       } else {
-        // Fallback demo data if backend not available
-        setAnalysisResult({
-          bpm: Math.floor(Math.random() * 60) + 100, // 100-160 BPM
-          key: ['C', 'D', 'E', 'F', 'G', 'A', 'B'][Math.floor(Math.random() * 7)] + 
-               [' Major', ' Minor'][Math.floor(Math.random() * 2)],
-          recommend: ['beat001', 'beat002', 'beat003'],
-          audioUrl: fileUrl
-        })
+        console.error('Analysis failed: Server responded with error')
+        setAnalysisResult(null)
       }
     } catch (error) {
       console.error('Analysis failed:', error)
-      // Fallback demo data
-      setAnalysisResult({
-        bpm: Math.floor(Math.random() * 60) + 100,
-        key: ['C', 'D', 'E', 'F', 'G', 'A', 'B'][Math.floor(Math.random() * 7)] + 
-             [' Major', ' Minor'][Math.floor(Math.random() * 2)],
-        recommend: ['beat001', 'beat002', 'beat003'],
-        audioUrl: fileUrl
-      })
+      setAnalysisResult(null)
     }
     setAnalyzing(false)
-  }
-
-  const togglePlayPause = () => {
-    if (wavesurferRef.current) {
-      wavesurferRef.current.playPause()
-    }
   }
 
   const resetSession = () => {
@@ -119,15 +71,14 @@ function Dashboard() {
     setFileUrl(null)
     setAnalysisResult(null)
     setPurchaseComplete(false)
-    if (wavesurferRef.current) {
-      wavesurferRef.current.destroy()
-      wavesurferRef.current = null
-    }
+    setPlaying(false)
   }
 
   const handlePurchase = (transaction) => {
     setPurchaseComplete(true)
   }
+
+
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
@@ -149,31 +100,25 @@ function Dashboard() {
       {!selectedFile && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold mb-4">Upload Your Beat</h2>
-          <Upload onFileSelect={handleFileSelect} uploading={uploading} />
+          <Upload 
+            onFileSelect={handleFileSelect} 
+            uploading={uploading} 
+            uploadProgress={uploadProgress}
+          />
           {uploadError && (
             <p className="text-red-500 text-sm mt-2">Upload failed: {uploadError}</p>
           )}
         </div>
       )}
 
-      {selectedFile && fileUrl && (
+      {selectedFile && fileUrl && !uploading && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Audio Preview</h2>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={togglePlayPause}
-                className="flex items-center space-x-1 px-3 py-1 bg-primary-500 hover:bg-primary-600 text-white rounded-md text-sm"
-              >
-                {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                <span>{playing ? 'Pause' : 'Play'}</span>
-              </button>
-            </div>
-          </div>
+          <h2 className="text-lg font-semibold mb-4">Audio Preview</h2>
+          <SimpleAudioPlayer 
+            audioUrl={fileUrl} 
+          />
           
-          <div ref={waveformRef} className="w-full mb-4"></div>
-          
-          <div className="flex justify-center">
+          <div className="flex justify-center mt-6">
             <button
               onClick={handleAnalyze}
               disabled={analyzing || !fileUrl}

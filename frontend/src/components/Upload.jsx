@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { Upload as UploadIcon, X } from 'lucide-react'
+import { Upload as UploadIcon, X, CheckCircle } from 'lucide-react'
 
-function Upload({ onFileSelect, uploading }) {
+function Upload({ onFileSelect, uploading, uploadProgress = 0 }) {
   const [dragActive, setDragActive] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
 
@@ -64,23 +64,62 @@ function Upload({ onFileSelect, uploading }) {
         />
         
         {selectedFile ? (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <UploadIcon className="w-8 h-8 text-green-500 mr-3" />
-              <div>
-                <p className="text-sm font-medium">{selectedFile.name}</p>
-                <p className="text-xs text-gray-500">
-                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                </p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                {uploadProgress === 100 ? (
+                  <CheckCircle className="w-8 h-8 text-green-500 mr-3" />
+                ) : (
+                  <UploadIcon className="w-8 h-8 text-blue-500 mr-3" />
+                )}
+                <div>
+                  <p className="text-sm font-medium">{selectedFile.name}</p>
+                  <p className="text-xs text-gray-500">
+                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
               </div>
+              {!uploading && (
+                <button
+                  onClick={clearFile}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                >
+                  <X className="w-4 h-4 text-gray-500" />
+                </button>
+              )}
             </div>
-            {!uploading && (
-              <button
-                onClick={clearFile}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-              >
-                <X className="w-4 h-4 text-gray-500" />
-              </button>
+
+            {uploading && (
+              <div className="space-y-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-blue-700 dark:text-blue-300 font-medium">
+                    {uploadProgress < 100 ? 'Uploading your beat...' : 'Upload complete!'}
+                  </span>
+                  <span className="text-blue-600 dark:text-blue-400 font-bold text-lg">
+                    {uploadProgress}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                  <div 
+                    className={`h-4 rounded-full transition-all duration-500 ease-out ${
+                      uploadProgress === 100 
+                        ? 'bg-gradient-to-r from-green-500 to-green-600' 
+                        : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                    }`}
+                    style={{ width: `${uploadProgress}%` }}
+                  >
+                    <div className="h-full bg-white/20 rounded-full animate-pulse"></div>
+                  </div>
+                </div>
+                {uploadProgress < 100 && (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 mr-2"></div>
+                    <span className="text-sm text-blue-600 dark:text-blue-400">
+                      Processing...
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         ) : (
@@ -93,15 +132,6 @@ function Upload({ onFileSelect, uploading }) {
               <p className="text-xs text-gray-500 mt-1">
                 Supports MP3, WAV, FLAC and other audio formats
               </p>
-            </div>
-          </div>
-        )}
-        
-        {uploading && (
-          <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 flex items-center justify-center rounded-lg">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Uploading...</p>
             </div>
           </div>
         )}
