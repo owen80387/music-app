@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  base: process.env.NODE_ENV === 'production' ? '/music-app/' : '/',
   plugins: [
     react(),
     VitePWA({
@@ -33,5 +34,17 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 3000
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/storage']
+        }
+      }
+    }
   }
 }) 

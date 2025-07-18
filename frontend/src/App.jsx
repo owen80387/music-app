@@ -44,7 +44,7 @@ function App() {
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Router basename={import.meta.env.BASE_URL} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           {user && <Navbar user={user} darkMode={darkMode} setDarkMode={setDarkMode} />}
           <Routes>
             <Route path="/login" element={<Login />} />
